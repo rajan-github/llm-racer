@@ -13,13 +13,13 @@ import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Service
-public class SimpleGenerateService implements GenerateService {
+public class StructuredTaskScopeBasedGenerateService implements GenerateService {
     private final LLMProvider llmProviderA, llmProviderB, llmProviderC;
     private static final ScopedValue<String> PROMPT = ScopedValue.newInstance();
     private static final ScopedValue<String> ORG_ID = ScopedValue.newInstance();
 
     @Autowired
-    public SimpleGenerateService(@Qualifier("providerA") LLMProvider llmProviderA, @Qualifier("providerB") LLMProvider llmProviderB, @Qualifier("providerC") LLMProvider llmProviderC) {
+    public StructuredTaskScopeBasedGenerateService(@Qualifier("providerA") LLMProvider llmProviderA, @Qualifier("providerB") LLMProvider llmProviderB, @Qualifier("providerC") LLMProvider llmProviderC) {
         this.llmProviderA = llmProviderA;
         this.llmProviderB = llmProviderB;
         this.llmProviderC = llmProviderC;

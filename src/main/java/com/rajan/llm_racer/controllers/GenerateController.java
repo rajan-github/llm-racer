@@ -19,8 +19,14 @@ public class GenerateController {
         this.generateService = generateService;
     }
 
-    @PostMapping("/generate")
-    public ResponseEntity<GenerateResponse> handleRequest(@RequestBody GenerateRequest req) {
+    @PostMapping("/generate-virtual")
+    public ResponseEntity<GenerateResponse> handleRequestWithVirtualThreads(@RequestBody GenerateRequest req) {
+        var response = generateService.generate(req);
+        return new ResponseEntity<>(new GenerateResponse(response, req.orgId()), HttpStatus.OK);
+    }
+
+    @PostMapping("/generate-platform")
+    public ResponseEntity<GenerateResponse> handleRequestWithPlatformThreads(@RequestBody GenerateRequest req) {
         var response = generateService.generate(req);
         return new ResponseEntity<>(new GenerateResponse(response, req.orgId()), HttpStatus.OK);
     }
