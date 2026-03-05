@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 
 @Slf4j
-@Service
+@Service(value = "platform")
 public class PlatformThreadBasedGenerateService implements GenerateService {
     private final LLMProvider llmProviderA, llmProviderB, llmProviderC;
     private final ExecutorService executors;
@@ -24,6 +24,7 @@ public class PlatformThreadBasedGenerateService implements GenerateService {
         this.llmProviderB = llmProviderB;
         this.llmProviderC = llmProviderC;
         this.executors = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        Runtime.getRuntime().addShutdownHook(new Thread(executors::shutdownNow));
     }
 
 

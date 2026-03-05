@@ -12,7 +12,7 @@ import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
-@Service
+@Service(value = "virtual")
 public class StructuredTaskScopeBasedGenerateService implements GenerateService {
     private final LLMProvider llmProviderA, llmProviderB, llmProviderC;
     private static final ScopedValue<String> PROMPT = ScopedValue.newInstance();
