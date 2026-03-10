@@ -20,12 +20,17 @@ public class ChaosLLMProvider implements LLMProvider {
     @Override
     public String generate(String prompt, String orgId) throws TimeoutException, InterruptedException {
         double r = ThreadLocalRandom.current().nextDouble();
-        if (r < chaosConfig.getTimeoutRate()) {
+        double cumulative = chaosConfig.getTimeoutRate();
+        if (r < cumulative) {
             Thread.sleep(chaosConfig.getLatencyMs());
             throw new TimeoutException("LLMProvider timeout!");
-        } else if (r < chaosConfig.getFailureRate()) {
+        }
+        cumulative += chaosConfig.getFailureRate();
+        if (r < cumulative) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Service unavailable");
-        } else if (r < chaosConfig.getLatencySpikeRate()) {
+        }
+        cumulative += chaosConfig.getLatencySpikeRate();
+        if (r < cumulative) {
             Thread.sleep(chaosConfig.getLatencyMs());
         }
         return delegate.generate(prompt, orgId);
