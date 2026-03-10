@@ -1,5 +1,8 @@
 package com.rajan.llm_racer.services;
 
+import com.rajan.llm_racer.chaos.ChaosLLMProvider;
+import com.rajan.llm_racer.config.ApplicationProperties;
+import com.rajan.llm_racer.config.ChaosConfig;
 import com.rajan.llm_racer.models.GenerateRequest;
 import com.rajan.llm_racer.provider.LLMProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +22,20 @@ public class PlatformThreadBasedGenerateService implements GenerateService {
     private final LLMProvider llmProviderA, llmProviderB, llmProviderC;
     private final ExecutorService executors;
 
-    public PlatformThreadBasedGenerateService(@Qualifier("providerA") LLMProvider llmProviderA, @Qualifier("providerB") LLMProvider llmProviderB, @Qualifier("providerC") LLMProvider llmProviderC) {
-        this.llmProviderA = llmProviderA;
-        this.llmProviderB = llmProviderB;
-        this.llmProviderC = llmProviderC;
+    public PlatformThreadBasedGenerateService(@Qualifier("providerA") LLMProvider llmProviderA,
+                                              @Qualifier("providerB") LLMProvider llmProviderB,
+                                              @Qualifier("providerC") LLMProvider llmProviderC,
+                                              final ApplicationProperties applicationProperties,
+                                              final ChaosConfig chaosConfig) {
+        if (applicationProperties.isCaosEnabled()) {
+            this.llmProviderA = new ChaosLLMProvider(llmProviderA, chaosConfig);
+            this.llmProviderB = new ChaosLLMProvider(llmProviderB, chaosConfig);
+            this.llmProviderC = new ChaosLLMProvider(llmProviderC, chaosConfig);
+        } else {
+            this.llmProviderC = llmProviderC;
+            this.llmProviderA = llmProviderA;
+            this.llmProviderB = llmProviderB;
+        }
         this.executors = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         Runtime.getRuntime().addShutdownHook(new Thread(executors::shutdownNow));
     }

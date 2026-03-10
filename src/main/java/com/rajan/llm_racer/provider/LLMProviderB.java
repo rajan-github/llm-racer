@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class LLMProviderB implements LLMProvider {
     @Override
     public String generate(String prompt, String orgId) {
-        log.info("ProviderA: generating response for prompt: {} and orgId: {}", prompt, orgId);
+        log.info("ProviderB: generating response for prompt: {} and orgId: {}", prompt, orgId);
         try {
             Thread.sleep(800);
         } catch (InterruptedException e) {

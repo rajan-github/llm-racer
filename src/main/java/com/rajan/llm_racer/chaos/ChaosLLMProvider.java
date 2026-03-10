@@ -1,5 +1,6 @@
 package com.rajan.llm_racer.chaos;
 
+import com.rajan.llm_racer.config.ChaosConfig;
 import com.rajan.llm_racer.provider.LLMProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,7 +16,6 @@ public class ChaosLLMProvider implements LLMProvider {
         this.delegate = delegate;
         this.chaosConfig = chaosConfig;
     }
-
 
     @Override
     public String generate(String prompt, String orgId) throws TimeoutException, InterruptedException {
