@@ -3,6 +3,7 @@ package com.rajan.llm_racer.services;
 import com.rajan.llm_racer.chaos.ChaosLLMProvider;
 import com.rajan.llm_racer.config.ApplicationProperties;
 import com.rajan.llm_racer.config.ChaosConfig;
+import com.rajan.llm_racer.executors.ResilienceExecutor;
 import com.rajan.llm_racer.models.GenerateRequest;
 import com.rajan.llm_racer.provider.LLMProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +22,14 @@ import java.util.concurrent.Executors;
 public class PlatformThreadBasedGenerateService implements GenerateService {
     private final LLMProvider llmProviderA, llmProviderB, llmProviderC;
     private final ExecutorService executors;
+    private final ResilienceExecutor resilienceExecutor;
 
     public PlatformThreadBasedGenerateService(@Qualifier("providerA") LLMProvider llmProviderA,
                                               @Qualifier("providerB") LLMProvider llmProviderB,
                                               @Qualifier("providerC") LLMProvider llmProviderC,
                                               final ApplicationProperties applicationProperties,
-                                              final ChaosConfig chaosConfig) {
+                                              final ChaosConfig chaosConfig, ResilienceExecutor resilienceExecutor) {
+        this.resilienceExecutor = resilienceExecutor;
         if (applicationProperties.isCaosEnabled()) {
             this.llmProviderA = new ChaosLLMProvider(llmProviderA, chaosConfig);
             this.llmProviderB = new ChaosLLMProvider(llmProviderB, chaosConfig);

@@ -35,4 +35,9 @@ public class ChaosLLMProvider implements LLMProvider {
         }
         return delegate.generate(prompt, orgId);
     }
+
+    @Override
+    public String getName() {
+        return this.delegate.getName();
+    }
 }

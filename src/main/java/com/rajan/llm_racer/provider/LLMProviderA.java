@@ -48,4 +48,9 @@ public class LLMProviderA implements LLMProvider {
                 %s
                 """.formatted(prompt, orgId);
     }
+
+    @Override
+    public String getName() {
+        return "ProviderA";
+    }
 }
