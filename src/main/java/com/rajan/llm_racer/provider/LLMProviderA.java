@@ -8,12 +8,11 @@ import org.springframework.stereotype.Component;
 public class LLMProviderA implements LLMProvider {
 
     @Override
-    public String generate(String prompt, String orgId) {
+    public String generate(String prompt, String orgId) throws InterruptedException {
         log.info("ProviderA: generating response for prompt: {} and orgId: {}", prompt, orgId);
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        Thread.sleep(300);
+        if(Thread.currentThread().isInterrupted()) {
+            throw new InterruptedException("Provider A was interrupted");
         }
         return """
                 %s

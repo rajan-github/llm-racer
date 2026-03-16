@@ -11,17 +11,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 
 @Slf4j
 @Service(value = "platform")
 public class PlatformThreadBasedGenerateService implements GenerateService {
     private final LLMProvider llmProviderA, llmProviderB, llmProviderC;
-    private final ExecutorService executors;
+    private final ScheduledExecutorService scheduler;
     private final ResilienceExecutor resilienceExecutor;
 
     public PlatformThreadBasedGenerateService(@Qualifier("providerA") LLMProvider llmProviderA,
@@ -39,26 +36,67 @@ public class PlatformThreadBasedGenerateService implements GenerateService {
             this.llmProviderA = llmProviderA;
             this.llmProviderB = llmProviderB;
         }
-        this.executors = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        Runtime.getRuntime().addShutdownHook(new Thread(executors::shutdownNow));
+        this.scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+        Runtime.getRuntime().addShutdownHook(new Thread(scheduler::shutdownNow));
     }
 
 
     @Override
     public String generate(GenerateRequest req) {
         log.info("Generating using platform threads for request {}", req);
-        final List<Callable<String>> tasks = List.of(() -> llmProviderA.generate(req.prompt(), req.orgId())
-                ,
-                () -> llmProviderB.generate(req.prompt(), req.orgId()),
-                () -> llmProviderC.generate(req.prompt(), req.orgId())
-        );
+        Callable<String> taskA = () -> llmProviderA.generate(req.prompt(), req.orgId());
+        Callable<String> taskB = () -> llmProviderB.generate(req.prompt(), req.orgId());
+        Callable<String> taskC = () -> llmProviderC.generate(req.prompt(), req.orgId());
+
+        CompletableFuture<String> result = new CompletableFuture<>();
+
+        List<Future<?>> futures = new CopyOnWriteArrayList<>();
+        Future<?> a = this.scheduler.submit(() -> {
+            try {
+                tryComplete(result, resilienceExecutor.execute(taskA, llmProviderA.getName()), futures);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        futures.add(a);
+        scheduler.schedule(() -> {
+            if (!result.isDone()) {
+                Future<?> b = scheduler.submit(() -> {
+                    try {
+                        tryComplete(result, resilienceExecutor.execute(taskB, llmProviderB.getName()), futures);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                futures.add(b);
+            }
+        }, 400, TimeUnit.MILLISECONDS);
+
+
+        scheduler.schedule(() -> {
+            if (!result.isDone()) {
+                Future<?> c = scheduler.submit(() -> {
+                    try {
+                        tryComplete(result, resilienceExecutor.execute(taskC, llmProviderC.getName()), futures);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                futures.add(c);
+            }
+        }, 1100, TimeUnit.MILLISECONDS);
         try {
-            return executors.invokeAny(tasks);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            return result.get(req.timeoutSeconds(), TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+        }
+    }
+
+    private void tryComplete(CompletableFuture<String> result, String value, List<Future<?>> tasks) {
+        if (result.complete(value)) {
+            for (var task : tasks) {
+                task.cancel(true);
+            }
         }
     }
 }

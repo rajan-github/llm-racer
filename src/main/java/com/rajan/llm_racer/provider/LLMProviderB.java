@@ -3,16 +3,16 @@ package com.rajan.llm_racer.provider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@Component(value="providerB")
+@Component(value = "providerB")
 @Slf4j
 public class LLMProviderB implements LLMProvider {
     @Override
-    public String generate(String prompt, String orgId) {
+    public String generate(String prompt, String orgId) throws InterruptedException {
         log.info("ProviderB: generating response for prompt: {} and orgId: {}", prompt, orgId);
-        try {
-            Thread.sleep(800);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+
+        Thread.sleep(800);
+        if (Thread.currentThread().isInterrupted()) {
+            throw new InterruptedException("Provider B was interrupted");
         }
         return """
                 %s
