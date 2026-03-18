@@ -70,7 +70,7 @@ public class PlatformThreadBasedGenerateService implements GenerateService {
                 });
                 futures.add(b);
             }
-        }, 400, TimeUnit.MILLISECONDS);
+        }, 100, TimeUnit.MILLISECONDS);
 
 
         scheduler.schedule(() -> {
@@ -84,7 +84,7 @@ public class PlatformThreadBasedGenerateService implements GenerateService {
                 });
                 futures.add(c);
             }
-        }, 1100, TimeUnit.MILLISECONDS);
+        }, 250, TimeUnit.MILLISECONDS);
         try {
             return result.get(req.timeoutSeconds(), TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {

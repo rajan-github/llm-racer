@@ -51,12 +51,12 @@ public class StructuredTaskScopeBasedGenerateService implements GenerateService 
                     scope.fork(() -> resilienceExecutor.execute(() -> llmProviderA.generate(PROMPT.get(), ORG_ID.get()), llmProviderA.getName()));
 
                     scope.fork(() -> {
-                        Thread.sleep(Duration.ofMillis(400));
+                        Thread.sleep(Duration.ofMillis(100));
                         return resilienceExecutor.execute(() -> llmProviderB.generate(PROMPT.get(), ORG_ID.get()), llmProviderB.getName());
                     });
 
                     scope.fork(() -> {
-                        Thread.sleep(Duration.ofMillis(900));
+                        Thread.sleep(Duration.ofMillis(250));
                         return resilienceExecutor.execute(() -> llmProviderC.generate(PROMPT.get(), ORG_ID.get()), llmProviderC.getName());
                     });
                     var deadline = Instant.now().plusSeconds(req.timeoutSeconds());
