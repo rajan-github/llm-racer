@@ -41,14 +41,14 @@ public class ResilienceExecutor {
         var bulkheadConfig = BulkheadConfig.custom().maxConcurrentCalls(5000).maxWaitDuration(Duration.ofMillis(50)).build();
         bulkheadRegistry = BulkheadRegistry.custom().withBulkheadConfig(bulkheadConfig).build();
         var circuitBreakerConfig = CircuitBreakerConfig.custom()
-                .failureRateThreshold(50)
-                .slowCallRateThreshold(80)
+                .failureRateThreshold(80)
+                .slowCallRateThreshold(90)
                 .slowCallDurationThreshold(Duration.ofSeconds(2))
                 .waitDurationInOpenState(Duration.ofSeconds(10))
                 .permittedNumberOfCallsInHalfOpenState(10)
-                .minimumNumberOfCalls(100)
+                .minimumNumberOfCalls(20)
                 .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
-                .slidingWindowSize(200)
+                .slidingWindowSize(30)
                 .recordExceptions(IOException.class, TimeoutException.class)
                 .ignoreExceptions(IllegalArgumentException.class)
                 .build();
